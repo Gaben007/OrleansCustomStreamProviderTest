@@ -59,7 +59,7 @@ namespace OrleansSimpleQueueCacheTest
                      streamBuilder.Configure<StreamPullingAgentOptions>(ob =>
                          ob.Configure(options => options.GetQueueMsgsTimerPeriod = TimeSpan.FromMilliseconds(100))
                  ))
-                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleQueueCacheTests).Assembly).WithReferences());
+                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(TestBase).Assembly).WithReferences());
 
             _host = builder.Build();
             this.ServiceProvider = _host.Services;
