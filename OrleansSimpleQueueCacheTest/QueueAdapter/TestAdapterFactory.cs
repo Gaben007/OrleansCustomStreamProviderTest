@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OrleansSimpleQueueCacheTest
+namespace OrleansSimpleQueueCacheTest.QueueAdapter
 {
     public class TestAdapterFactory : IQueueAdapterFactory
     {

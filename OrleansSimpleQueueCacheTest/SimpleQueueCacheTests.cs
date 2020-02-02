@@ -11,6 +11,7 @@ using Orleans.Hosting;
 using Orleans.Runtime;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using OrleansSimpleQueueCacheTest.QueueAdapter;
 
 namespace OrleansSimpleQueueCacheTest
 {
