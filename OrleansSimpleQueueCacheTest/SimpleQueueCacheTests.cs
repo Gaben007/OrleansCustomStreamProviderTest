@@ -17,7 +17,7 @@ namespace OrleansSimpleQueueCacheTest
     [TestClass]
     public class SimpleQueueCacheTests
     {
-        private IHost _host;
+        private ISiloHost _host;
 
         protected IServiceProvider ServiceProvider { get; private set; }
 
@@ -35,65 +35,43 @@ namespace OrleansSimpleQueueCacheTest
             //var provider = services.BuildServiceProvider(true);
             //this.ServiceProvider = provider.CreateScope().ServiceProvider;
 
-            
-            var builder = new HostBuilder()
-                    .UseOrleans((context, siloBuilder) =>
-                    {
-                        context.Configuration.Bind(connectionString);
 
-                        siloBuilder
-                            .ConfigureServices((hostBuilderContext, services) =>
-                            {
-                                services.AddDbContextPool<TestDbContext>(options =>
-                                    options.UseSqlServer(connectionString)
-                                )
-                                .AddSingleton<DbMigrator>()
-                                .AddSingleton<ILifecycleParticipant<ISiloLifecycle>>(provider => provider.GetRequiredService<DbMigrator>());
-                            })
-                            .Configure<ClusterOptions>(options =>
-                            {
-                                options.ClusterId = "dev";
-                                options.ServiceId = "TEST";
-                            })
-                            .ConfigureEndpoints(22222, 40000, AddressFamily.InterNetwork, true)
-                            .UseAdoNetClustering(options =>
-                            {
-                                options.Invariant = "System.Data.SqlClient";
-                                options.ConnectionString = connectionString;
-                            })
-                            //.UseAdoNetReminderService(options =>
-                            //{
-                            //    options.Invariant = "System.Data.SqlClient";
-                            //    options.ConnectionString = connectionString;
-                            //})
-                            .AddAdoNetGrainStorage("TestDatabaseStorage", options =>
-                            {
-                                options.Invariant = "System.Data.SqlClient";
-                                options.ConnectionString = connectionString;
-                                options.UseJsonFormat = true;
-                            })
-                            .AddMemoryGrainStorage(name: "MemoryStorage")
-                            .AddPersistentStreams("TestStreamProvider", TestAdapterFactory.Create, streamBuilder =>
-                                streamBuilder.Configure<StreamPullingAgentOptions>(ob =>
-                                    ob.Configure(options => options.GetQueueMsgsTimerPeriod = TimeSpan.FromMilliseconds(100))
-                            ))
-                            .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleQueueCacheTests).Assembly).WithReferences());
-                    })
-                    .ConfigureServices(services =>
-                    {
-                        services.AddDbContextPool<TestDbContext>(options =>
-                            options.UseSqlServer(connectionString)
-                        )
-                        .Configure<ConsoleLifetimeOptions>(options =>
-                        {
-                            options.SuppressStatusMessages = true;
-                        });
+            var builder = new SiloHostBuilder()
+                 .ConfigureServices((hostBuilderContext, services) =>
+                 {
+                     services.AddDbContextPool<TestDbContext>(options =>
+                         options.UseSqlServer(connectionString)
+                     )
+                     .AddSingleton<DbMigrator>()
+                     .AddSingleton<ILifecycleParticipant<ISiloLifecycle>>(provider => provider.GetRequiredService<DbMigrator>());
+                 })
+                 .Configure<ClusterOptions>(options =>
+                 {
+                     options.ClusterId = "dev";
+                     options.ServiceId = "TEST";
+                 })
+                 .ConfigureEndpoints(22222, 40000, AddressFamily.InterNetwork, true)
+                 .UseAdoNetClustering(options =>
+                 {
+                     options.Invariant = "System.Data.SqlClient";
+                     options.ConnectionString = connectionString;
+                 })
+                 .AddAdoNetGrainStorage("TestDatabaseStorage", options =>
+                 {
+                     options.Invariant = "System.Data.SqlClient";
+                     options.ConnectionString = connectionString;
+                     options.UseJsonFormat = true;
+                 })
+                 .AddMemoryGrainStorage(name: "MemoryStorage")
+                 .AddPersistentStreams("TestStreamProvider", TestAdapterFactory.Create, streamBuilder =>
+                     streamBuilder.Configure<StreamPullingAgentOptions>(ob =>
+                         ob.Configure(options => options.GetQueueMsgsTimerPeriod = TimeSpan.FromMilliseconds(100))
+                 ))
+                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleQueueCacheTests).Assembly).WithReferences());
 
-                    });
-
-            _host = builder.UseConsoleLifetime().Build();
+            _host = builder.Build();
             this.ServiceProvider = _host.Services;
-            await _host.RunAsync().ConfigureAwait(false);
+            await _host.StartAsync().ConfigureAwait(false);
         }
 
         [TestMethod]
