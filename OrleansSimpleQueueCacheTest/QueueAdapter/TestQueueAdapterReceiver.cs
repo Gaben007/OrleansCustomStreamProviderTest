@@ -29,9 +29,10 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
 
         }
 
-        public Task<IList<IBatchContainer>> GetQueueMessagesAsync(int maxCount)
+        public async Task<IList<IBatchContainer>> GetQueueMessagesAsync(int maxCount)
         {
-            return Task.FromResult<IList<IBatchContainer>>(_queueMessagesProvider().ToList());
+            await Task.Delay(100); // simulates real query
+            return _queueMessagesProvider().ToList();
         }
 
         public Task Initialize(TimeSpan timeout)
