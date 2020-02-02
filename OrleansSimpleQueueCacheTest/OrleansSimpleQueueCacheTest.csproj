@@ -12,7 +12,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0-preview-20200116-01" />
+    <PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="3.0.2" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.0-beta2" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.0-beta2" />
     <PackageReference Include="coverlet.collector" Version="1.2.0">
@@ -50,6 +52,10 @@
     <EmbeddedResource Include=".\OrleansAdoNetContent\SQLServer\SQLServer-Reminders.sql">
       <Link>Migrations\Sql\0004 SQLServer-Reminders.sql</Link>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Grains\Grains.csproj" />
   </ItemGroup>
     
   <ItemGroup>

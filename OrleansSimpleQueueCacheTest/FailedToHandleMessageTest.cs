@@ -8,6 +8,7 @@ using System.Linq;
 using FluentAssertions;
 using Orleans;
 using Microsoft.Extensions.DependencyInjection;
+using Grains;
 
 namespace OrleansSimpleQueueCacheTest
 {
@@ -15,7 +16,7 @@ namespace OrleansSimpleQueueCacheTest
     public class FailedToHandleMessageTest : TestBase
     {
         private bool _isFirst = true;
-        private TestBatchContainer _sampleMessage = new TestBatchContainer(Guid.Parse("997dbf27-ccba-4cdf-8765-cb1936335085"), nameof(FailedToHandleMessageTest), new object[] { "sample message" }.ToList(), 0);
+        private TestBatchContainer _sampleMessage = new TestBatchContainer(Guid.Parse("997dbf27-ccba-4cdf-8765-cb1936335085"), "FailedToHandleMessageTest", new object[] { "sample message" }.ToList(), 0);
         private List<IBatchContainer> _deliveredMessages = new List<IBatchContainer>();
         private FailedToHandleMessageTestState _state = new FailedToHandleMessageTestState();
 
@@ -62,45 +63,5 @@ namespace OrleansSimpleQueueCacheTest
 
             return Enumerable.Empty<IBatchContainer>();
         }
-    }
-
-    public interface IFailedToHandleMessageTestGrain : IGrainWithGuidKey { }
-
-    [ImplicitStreamSubscription(nameof(FailedToHandleMessageTest))]
-    public class FailedToHandleMessageTestGrain : Grain, IFailedToHandleMessageTestGrain, IAsyncObserver<string>
-    {
-        private readonly FailedToHandleMessageTestState _state;
-
-        public FailedToHandleMessageTestGrain(FailedToHandleMessageTestState state)
-        {
-            _state = state ?? throw new ArgumentNullException(nameof(state));
-        }
-
-        public override async Task OnActivateAsync()
-        {
-            await this.GetStreamProvider("TestStreamProvider").GetStream<string>(this.GetPrimaryKey(), nameof(FailedToHandleMessageTest)).SubscribeAsync(this);
-        }
-
-        public Task OnCompletedAsync()
-        {
-            _state.FinishedRetryOnError.Add(this.GetPrimaryKey(), false);
-            return Task.CompletedTask;
-        }
-
-        public Task OnErrorAsync(Exception ex)
-        {
-            _state.FinishedRetryOnError.Add(this.GetPrimaryKey(), true);
-            return Task.CompletedTask;
-        }
-
-        public Task OnNextAsync(string item, StreamSequenceToken token = null)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class FailedToHandleMessageTestState
-    {
-        public Dictionary<Guid, bool> FinishedRetryOnError { get; set; } = new Dictionary<Guid, bool>();
     }
 }
