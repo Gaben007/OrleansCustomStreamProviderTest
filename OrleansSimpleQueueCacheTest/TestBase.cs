@@ -1,22 +1,22 @@
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Orleans.Configuration;
-using System;
-using Orleans;
-using Orleans.Hosting;
-using Orleans.Runtime;
-using System.Threading.Tasks;
 using System.Net.Sockets;
 using OrleansSimpleQueueCacheTest.QueueAdapter;
+using Orleans.Configuration;
+using Orleans;
+using Orleans.Runtime;
+using Orleans.Hosting;
 using Orleans.Streams;
-using System.Collections.Generic;
 
 namespace OrleansSimpleQueueCacheTest
 {
-    [TestClass]
-    public class SimpleQueueCacheTests
+    public abstract class TestBase
     {
         private ISiloHost _host;
 
@@ -66,19 +66,18 @@ namespace OrleansSimpleQueueCacheTest
             await _host.StartAsync().ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task TestMethod1()
+        [TestCleanup]
+        public void CleanupTest()
         {
-            ;
+            if (_host != null)
+            {
+                _host.Dispose();
+                _host = null;
+            }
         }
 
-        private IEnumerable<IBatchContainer> ProvideMessages()
-        {
-            return new List<IBatchContainer>();
-        }
+        protected abstract IEnumerable<IBatchContainer> ProvideMessages();
 
-        private void OnMessagesDelivered(IEnumerable<IBatchContainer> messages)
-        {
-        }
+        protected abstract void OnMessagesDelivered(IEnumerable<IBatchContainer> messages);
     }
 }
