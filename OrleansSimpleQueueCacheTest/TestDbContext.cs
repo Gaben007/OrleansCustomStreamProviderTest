@@ -7,5 +7,8 @@ namespace OrleansSimpleQueueCacheTest
 {
     public class TestDbContext : DbContext
     {
+        public TestDbContext(DbContextOptions<TestDbContext> options)
+            : base(options)
+        { }
     }
 }
