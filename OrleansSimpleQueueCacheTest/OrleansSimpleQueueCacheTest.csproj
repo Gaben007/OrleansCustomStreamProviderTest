@@ -37,6 +37,21 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include=".\OrleansAdoNetContent\SQLServer\SQLServer-Main.sql">
+      <Link>Migrations\Sql\0001 SQLServer-Main.sql</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include=".\OrleansAdoNetContent\SQLServer\SQLServer-Clustering.sql">
+      <Link>Migrations\Sql\0002 SQLServer-Clustering.sql</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include=".\OrleansAdoNetContent\SQLServer\SQLServer-Persistence.sql">
+      <Link>Migrations\Sql\0003 SQLServer-Persistence.sql</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include=".\OrleansAdoNetContent\SQLServer\SQLServer-Reminders.sql">
+      <Link>Migrations\Sql\0004 SQLServer-Reminders.sql</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+    
+  <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
