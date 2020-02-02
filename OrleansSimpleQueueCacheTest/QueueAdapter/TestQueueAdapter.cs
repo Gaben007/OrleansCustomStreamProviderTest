@@ -10,6 +10,7 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
     internal class TestQueueAdapter : IQueueAdapter
     {
         private readonly Func<IEnumerable<IBatchContainer>> _queueMessagesProvider;
+        private readonly Action<IEnumerable<IBatchContainer>> _onMessagesDelivered;
         private readonly ILoggerFactory _loggerFactory;
 
         public string Name { get; }
@@ -21,11 +22,13 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
         public TestQueueAdapter(
             string providerName,
             Func<IEnumerable<IBatchContainer>> queueMessagesProvider,
+            Action<IEnumerable<IBatchContainer>> onMessagesDelivered,
             ILoggerFactory loggerFactory
         )
         {
             this.Name = providerName;
             _queueMessagesProvider = queueMessagesProvider ?? throw new ArgumentNullException(nameof(queueMessagesProvider));
+            _onMessagesDelivered = onMessagesDelivered ?? throw new ArgumentNullException(nameof(onMessagesDelivered));
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
@@ -33,6 +36,7 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
         {
             return new TestQueueAdapterReceiver(
                 _queueMessagesProvider,
+                _onMessagesDelivered,
                 _loggerFactory
             );
         }

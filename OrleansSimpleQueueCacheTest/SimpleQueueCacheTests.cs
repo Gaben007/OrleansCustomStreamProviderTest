@@ -55,7 +55,7 @@ namespace OrleansSimpleQueueCacheTest
                      options.UseJsonFormat = true;
                  })
                  .AddMemoryGrainStorage(name: "MemoryStorage")
-                 .AddPersistentStreams("TestStreamProvider", new TestAdapterFactory.FactoryProvider(ProvideMessages).Create, streamBuilder =>
+                 .AddPersistentStreams("TestStreamProvider", new TestAdapterFactory.FactoryProvider(ProvideMessages, OnMessagesDelivered).Create, streamBuilder =>
                      streamBuilder.Configure<StreamPullingAgentOptions>(ob =>
                          ob.Configure(options => options.GetQueueMsgsTimerPeriod = TimeSpan.FromMilliseconds(100))
                  ))
@@ -69,13 +69,16 @@ namespace OrleansSimpleQueueCacheTest
         [TestMethod]
         public async Task TestMethod1()
         {
-            await Task.Delay(1000);
             ;
         }
 
         private IEnumerable<IBatchContainer> ProvideMessages()
         {
             return new List<IBatchContainer>();
+        }
+
+        private void OnMessagesDelivered(IEnumerable<IBatchContainer> messages)
+        {
         }
     }
 }

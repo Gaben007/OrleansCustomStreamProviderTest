@@ -12,9 +12,11 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
     {
         private readonly ILogger _logger;
         private readonly Func<IEnumerable<IBatchContainer>> _queueMessagesProvider;
+        private readonly Action<IEnumerable<IBatchContainer>> _onMessagesDelivered;
 
         public TestQueueAdapterReceiver(
             Func<IEnumerable<IBatchContainer>> queueMessagesProvider,
+            Action<IEnumerable<IBatchContainer>> onMessagesDelivered,
             ILoggerFactory loggerFactory
         )
         {
@@ -22,6 +24,7 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
                 throw new ArgumentNullException(nameof(loggerFactory));
 
             _queueMessagesProvider = queueMessagesProvider ?? throw new ArgumentNullException(nameof(queueMessagesProvider));
+            _onMessagesDelivered = onMessagesDelivered ?? throw new ArgumentNullException(nameof(onMessagesDelivered));
             _logger = loggerFactory.CreateLogger<TestQueueAdapterReceiver>();
 
         }
@@ -38,6 +41,7 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
 
         public Task MessagesDeliveredAsync(IList<IBatchContainer> messages)
         {
+            _onMessagesDelivered(messages);
             return Task.CompletedTask;
         }
 
