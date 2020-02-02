@@ -2,6 +2,7 @@
 using Orleans.Streams;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,23 +11,24 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
     internal class TestQueueAdapterReceiver : IQueueAdapterReceiver
     {
         private readonly ILogger _logger;
-        private readonly string _queueName;
-        private long _sequenceId = 0;
+        private readonly Func<IEnumerable<IBatchContainer>> _queueMessagesProvider;
 
-        public TestQueueAdapterReceiver(string queueName, ILoggerFactory loggerFactory)
+        public TestQueueAdapterReceiver(
+            Func<IEnumerable<IBatchContainer>> queueMessagesProvider,
+            ILoggerFactory loggerFactory
+        )
         {
             if (loggerFactory is null)
                 throw new ArgumentNullException(nameof(loggerFactory));
 
-            _queueName = queueName ?? throw new ArgumentNullException(nameof(queueName));
+            _queueMessagesProvider = queueMessagesProvider ?? throw new ArgumentNullException(nameof(queueMessagesProvider));
             _logger = loggerFactory.CreateLogger<TestQueueAdapterReceiver>();
 
         }
 
-        public async Task<IList<IBatchContainer>> GetQueueMessagesAsync(int maxCount)
+        public Task<IList<IBatchContainer>> GetQueueMessagesAsync(int maxCount)
         {
-            var batch = new List<IBatchContainer>();
-            return batch;
+            return Task.FromResult<IList<IBatchContainer>>(_queueMessagesProvider().ToList());
         }
 
         public Task Initialize(TimeSpan timeout)

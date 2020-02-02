@@ -9,6 +9,7 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
 {
     internal class TestQueueAdapter : IQueueAdapter
     {
+        private readonly Func<IEnumerable<IBatchContainer>> _queueMessagesProvider;
         private readonly ILoggerFactory _loggerFactory;
 
         public string Name { get; }
@@ -17,16 +18,21 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
 
         public StreamProviderDirection Direction => StreamProviderDirection.ReadOnly;
 
-        public TestQueueAdapter(string providerName, ILoggerFactory loggerFactory)
+        public TestQueueAdapter(
+            string providerName,
+            Func<IEnumerable<IBatchContainer>> queueMessagesProvider,
+            ILoggerFactory loggerFactory
+        )
         {
             this.Name = providerName;
+            _queueMessagesProvider = queueMessagesProvider ?? throw new ArgumentNullException(nameof(queueMessagesProvider));
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         public IQueueAdapterReceiver CreateReceiver(QueueId queueId)
         {
             return new TestQueueAdapterReceiver(
-                "TestQueue",
+                _queueMessagesProvider,
                 _loggerFactory
             );
         }

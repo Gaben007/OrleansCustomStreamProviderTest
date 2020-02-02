@@ -14,6 +14,7 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
     public class TestAdapterFactory : IQueueAdapterFactory
     {
         private readonly string _providerName;
+        private readonly Func<IEnumerable<IBatchContainer>> _queueMessagesProvider;
         private readonly ILoggerFactory _loggerFactory;
         private IStreamQueueMapper _streamQueueMapper;
         private IQueueAdapterCache _adapterCache;
@@ -21,10 +22,12 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
         public TestAdapterFactory(
             string name,
             SimpleQueueCacheOptions cacheOptions,
+            Func<IEnumerable<IBatchContainer>> queueMessagesProvider,
             ILoggerFactory loggerFactory
             )
         {
             _providerName = name;
+            _queueMessagesProvider = queueMessagesProvider ?? throw new ArgumentNullException(nameof(queueMessagesProvider));
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _streamQueueMapper = new HashRingBasedStreamQueueMapper(new HashRingStreamQueueMapperOptions() { TotalQueueCount = 1 }, _providerName);
             _adapterCache = new SimpleQueueAdapterCache(cacheOptions, this._providerName, this._loggerFactory);
@@ -32,7 +35,9 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
 
         public Task<IQueueAdapter> CreateAdapter()
         {
-            throw new NotImplementedException();
+            return Task.FromResult<IQueueAdapter>(
+                new TestQueueAdapter(_providerName, _queueMessagesProvider, _loggerFactory)
+            );
         }
 
         public Task<IStreamFailureHandler> GetDeliveryFailureHandler(QueueId queueId)
@@ -50,10 +55,20 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
             return _streamQueueMapper;
         }
 
-        public static TestAdapterFactory Create(IServiceProvider services, string providerName)
+        public class FactoryProvider
         {
-            var cacheOptions = services.GetOptionsByName<SimpleQueueCacheOptions>(providerName);
-            return ActivatorUtilities.CreateInstance<TestAdapterFactory>(services, providerName, cacheOptions);
+            private readonly Func<IEnumerable<IBatchContainer>> _queueMessagesProvider;
+
+            public FactoryProvider(Func<IEnumerable<IBatchContainer>> queueMessagesProvider)
+            {
+                _queueMessagesProvider = queueMessagesProvider ?? throw new ArgumentNullException(nameof(queueMessagesProvider));
+            }
+
+            public TestAdapterFactory Create(IServiceProvider services, string providerName)
+            {
+                var cacheOptions = services.GetOptionsByName<SimpleQueueCacheOptions>(providerName);
+                return ActivatorUtilities.CreateInstance<TestAdapterFactory>(services, providerName, cacheOptions, _queueMessagesProvider);
+            }
         }
     }
 }

@@ -1,17 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orleans.Configuration;
 using System;
-using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Hosting;
 using Orleans.Runtime;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using OrleansSimpleQueueCacheTest.QueueAdapter;
+using Orleans.Streams;
+using System.Collections.Generic;
 
 namespace OrleansSimpleQueueCacheTest
 {
@@ -27,15 +27,6 @@ namespace OrleansSimpleQueueCacheTest
         {
             var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
             string connectionString = configuration.GetConnectionString("Default");
-
-            //var services = new ServiceCollection();
-            //services.AddDbContextPool<TestDbContext>(options =>
-            //    options.UseSqlServer(connectionString)
-            //);
-
-            //var provider = services.BuildServiceProvider(true);
-            //this.ServiceProvider = provider.CreateScope().ServiceProvider;
-
 
             var builder = new SiloHostBuilder()
                  .ConfigureServices((hostBuilderContext, services) =>
@@ -64,7 +55,7 @@ namespace OrleansSimpleQueueCacheTest
                      options.UseJsonFormat = true;
                  })
                  .AddMemoryGrainStorage(name: "MemoryStorage")
-                 .AddPersistentStreams("TestStreamProvider", TestAdapterFactory.Create, streamBuilder =>
+                 .AddPersistentStreams("TestStreamProvider", new TestAdapterFactory.FactoryProvider(ProvideMessages).Create, streamBuilder =>
                      streamBuilder.Configure<StreamPullingAgentOptions>(ob =>
                          ob.Configure(options => options.GetQueueMsgsTimerPeriod = TimeSpan.FromMilliseconds(100))
                  ))
@@ -80,6 +71,11 @@ namespace OrleansSimpleQueueCacheTest
         {
             await Task.Delay(1000);
             ;
+        }
+
+        private IEnumerable<IBatchContainer> ProvideMessages()
+        {
+            return new List<IBatchContainer>();
         }
     }
 }
