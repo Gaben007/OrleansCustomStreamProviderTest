@@ -77,7 +77,7 @@ namespace OrleansSimpleQueueCacheTest
         [TestMethod]
         public async Task TestMethod1()
         {
-            await Task.Delay(100000);
+            await Task.Delay(1000);
             ;
         }
     }
