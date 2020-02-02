@@ -36,6 +36,8 @@ namespace OrleansSimpleQueueCacheTest
                      )
                      .AddSingleton<DbMigrator>()
                      .AddSingleton<ILifecycleParticipant<ISiloLifecycle>>(provider => provider.GetRequiredService<DbMigrator>());
+
+                     ConfigureServices(services);
                  })
                  .Configure<ClusterOptions>(options =>
                  {
@@ -79,5 +81,7 @@ namespace OrleansSimpleQueueCacheTest
         protected abstract IEnumerable<IBatchContainer> ProvideMessages();
 
         protected abstract void OnMessagesDelivered(IEnumerable<IBatchContainer> messages);
+
+        protected virtual void ConfigureServices(IServiceCollection services) { }
     }
 }
