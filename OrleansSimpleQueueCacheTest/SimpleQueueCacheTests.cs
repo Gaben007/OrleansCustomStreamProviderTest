@@ -9,16 +9,20 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Hosting;
 using Orleans.Runtime;
+using System.Threading.Tasks;
+using System.Net.Sockets;
 
 namespace OrleansSimpleQueueCacheTest
 {
     [TestClass]
     public class SimpleQueueCacheTests
     {
+        private IHost _host;
+
         protected IServiceProvider ServiceProvider { get; private set; }
 
         [TestInitialize]
-        public void InitTest()
+        public async Task InitTest()
         {
             var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
             string connectionString = configuration.GetConnectionString("Default");
@@ -31,6 +35,7 @@ namespace OrleansSimpleQueueCacheTest
             //var provider = services.BuildServiceProvider(true);
             //this.ServiceProvider = provider.CreateScope().ServiceProvider;
 
+            
             var builder = new HostBuilder()
                     .UseOrleans((context, siloBuilder) =>
                     {
@@ -50,7 +55,7 @@ namespace OrleansSimpleQueueCacheTest
                                 options.ClusterId = "dev";
                                 options.ServiceId = "TEST";
                             })
-                            //.ConfigureEndpoints(22222, 40000, AddressFamily.InterNetwork, true)
+                            .ConfigureEndpoints(22222, 40000, AddressFamily.InterNetwork, true)
                             .UseAdoNetClustering(options =>
                             {
                                 options.Invariant = "System.Data.SqlClient";
@@ -86,14 +91,16 @@ namespace OrleansSimpleQueueCacheTest
 
                     });
 
-            var host = builder.UseConsoleLifetime().Build();
-            this.ServiceProvider = host.Services;
-            host.RunAsync().Ignore();
+            _host = builder.UseConsoleLifetime().Build();
+            this.ServiceProvider = _host.Services;
+            await _host.RunAsync().ConfigureAwait(false);
         }
 
         [TestMethod]
-        public void TestMethod1()
+        public async Task TestMethod1()
         {
+            await Task.Delay(100000);
+            ;
         }
     }
 }
