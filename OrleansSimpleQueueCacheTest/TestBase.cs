@@ -64,10 +64,11 @@ namespace OrleansSimpleQueueCacheTest
         }
 
         [TestCleanup]
-        public void CleanupTest()
+        public async Task CleanupTest()
         {
             if (_host != null)
             {
+                await _host.StopAsync().ConfigureAwait(false);
                 _host.Dispose();
                 _host = null;
             }
