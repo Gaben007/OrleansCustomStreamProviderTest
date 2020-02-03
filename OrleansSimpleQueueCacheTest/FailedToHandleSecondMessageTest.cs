@@ -13,41 +13,41 @@ namespace OrleansSimpleQueueCacheTest
 {
     /*
      * Test case:
-     * One grain subscribes for "FailedToHandleFirstMessageTest" stream namespace and throws exception while try to processing first sample message.
+     * One grain subscribes for "FailedToHandleSecondMessageTest" stream namespace and throws exception while try to processing second sample message.
      * Test sends two sample messages for grain.
      * 
      * Expected behavior:
-     * Grain's OnNextAsync method should be retried for 1 min for the first sample message and after that OnErrorAsync should be called.
-     * IQueueAdapterReceiver.MessagesDeliveredAsync shold be called with the second sample message.
+     * Grain's OnNextAsync method should be retried for 1 min for the second sample message and after that OnErrorAsync should be called.
+     * IQueueAdapterReceiver.MessagesDeliveredAsync shold be called with the first sample message.
      * 
-     * Subscribed grain's implementation: FailedToHandleFirstMessageTestGrain.cs
+     * Subscribed grain's implementation: FailedToHandleSecondMessageTestGrain.cs
      * 
      * Issue:
-     * IQueueAdapterReceiver.MessagesDeliveredAsync is called with failed message. First is included but the second was the success.
+     * IQueueAdapterReceiver.MessagesDeliveredAsync is immediately called with both messages.
      * 
      */
     [TestClass]
-    public class FailedToHandleFirstMessageTest : TestBase
+    public class FailedToHandleSecondMessageTest : TestBase
     {
-        private bool _isFirst = true;
-        private TestBatchContainer _sampleMessage1 = new TestBatchContainer(Guid.Parse("1cbf76d7-1d21-4bf3-8eac-09905ded5673"), "FailedToHandleFirstMessageTest", new object[] { "message_1" }.ToList(), 0);
-        private TestBatchContainer _sampleMessage2 = new TestBatchContainer(Guid.Parse("81bdf90c-51f3-4711-b4f2-023b73ca1c71"), "FailedToHandleFirstMessageTest", new object[] { "message_2" }.ToList(), 1);
+        private bool _isSecond = true;
+        private TestBatchContainer _sampleMessage1 = new TestBatchContainer(Guid.Parse("58ffa8c7-bca7-4038-b4a4-48c36a250043"), "FailedToHandleSecondMessageTest", new object[] { "message_1" }.ToList(), 0);
+        private TestBatchContainer _sampleMessage2 = new TestBatchContainer(Guid.Parse("57596046-c36f-422a-bf52-03dce83cd63a"), "FailedToHandleSecondMessageTest", new object[] { "message_2" }.ToList(), 1);
         private List<IBatchContainer> _deliveredMessages = new List<IBatchContainer>();
         private FailedToHandleMessageTestState _state = new FailedToHandleMessageTestState();
 
         [TestMethod]
-        public async Task MessageHandlerThrowsException_FirstMessageShouldntBeDelivered_SecondShouldBe()
+        public async Task MessageHandlerThrowsException_SecondMessageShouldntBeDelivered_FirstShouldBe()
         {
             var startAt = DateTime.Now;
 
             // wait for retry
-            while (!_state.FinishedRetryOnError.GetValueOrDefault(_sampleMessage1.StreamGuid) || !_state.FinishedRetryOnError.ContainsKey(_sampleMessage2.StreamGuid))
+            while (!_state.FinishedRetryOnError.GetValueOrDefault(_sampleMessage2.StreamGuid) || !_state.FinishedRetryOnError.ContainsKey(_sampleMessage1.StreamGuid))
             {
                 // timeout for test - built in retry logic should try until 1 min
                 if (startAt.AddMinutes(2) < DateTime.Now)
                     throw new TimeoutException();
 
-                // first message shouldn't be delivered before ending the retry
+                // second message shouldn't be delivered before ending the retry
                 _deliveredMessages.Should().HaveCountLessThan(2);
 
                 // before the retry is finifhed for the message it shouldn't be marked as delivered
@@ -58,13 +58,13 @@ namespace OrleansSimpleQueueCacheTest
             await Task.Delay(1000);
 
             // both message should be processed by grain
-            _state.FinishedRetryOnError[_sampleMessage1.StreamGuid].Should().BeTrue();
-            _state.FinishedRetryOnError[_sampleMessage2.StreamGuid].Should().BeFalse();
+            _state.FinishedRetryOnError[_sampleMessage1.StreamGuid].Should().BeFalse();
+            _state.FinishedRetryOnError[_sampleMessage2.StreamGuid].Should().BeTrue();
 
-            // after the retry is finifhed for the first message it shouldn't be marked as delivered
+            // after the retry is finifhed for the second message it shouldn't be marked as delivered
             // and the second message should be
             _deliveredMessages.Should().HaveCount(1);
-            _deliveredMessages.First().StreamGuid.Should().Be(_sampleMessage2.StreamGuid);
+            _deliveredMessages.First().StreamGuid.Should().Be(_sampleMessage1.StreamGuid);
         }
 
         protected override void ConfigureServices(IServiceCollection services)
@@ -79,9 +79,9 @@ namespace OrleansSimpleQueueCacheTest
 
         protected override IEnumerable<IBatchContainer> ProvideMessages()
         {
-            if (_isFirst)
+            if (_isSecond)
             {
-                _isFirst = false;
+                _isSecond = false;
                 return new IBatchContainer[] { _sampleMessage1, _sampleMessage2 };
             }
 

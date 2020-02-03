@@ -23,7 +23,7 @@ namespace OrleansSimpleQueueCacheTest
      * Subscribed grain's implementation: FailedToHandleMessageTestGrain.cs
      * 
      * Issue:
-     * IQueueAdapterReceiver.MessagesDeliveredAsync is called immediately after the sample message retrived from the IQueueAdapterReceiver.
+     * IQueueAdapterReceiver.MessagesDeliveredAsync is immediately called after the sample message retrived from the IQueueAdapterReceiver.
      * 
      */
     [TestClass]
