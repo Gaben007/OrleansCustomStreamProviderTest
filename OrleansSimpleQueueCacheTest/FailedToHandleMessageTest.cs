@@ -6,12 +6,26 @@ using Orleans.Streams;
 using OrleansSimpleQueueCacheTest.QueueAdapter;
 using System.Linq;
 using FluentAssertions;
-using Orleans;
 using Microsoft.Extensions.DependencyInjection;
 using Grains;
 
 namespace OrleansSimpleQueueCacheTest
 {
+    /*
+     * Test case:
+     * One grain subscribes for "FailedToHandleMessageTest" stream namespace and throws exception while try to processing message.
+     * Test sends one sample message for grain.
+     * 
+     * Expected behavior:
+     * Grain's OnNextAsync method should be retried for 1 min and after that OnErrorAsync should be called.
+     * IQueueAdapterReceiver.MessagesDeliveredAsync sholdn't be called with the sample message.
+     * 
+     * Subscribed grain's implementation: FailedToHandleMessageTestGrain.cs
+     * 
+     * Issue:
+     * IQueueAdapterReceiver.MessagesDeliveredAsync is called immediately after the sample message retrived from the IQueueAdapterReceiver.
+     * 
+     */
     [TestClass]
     public class FailedToHandleMessageTest : TestBase
     {
@@ -21,14 +35,14 @@ namespace OrleansSimpleQueueCacheTest
         private FailedToHandleMessageTestState _state = new FailedToHandleMessageTestState();
 
         [TestMethod]
-        public async Task MessageHandlerThrowsException()
+        public async Task MessageHandlerThrowsException_MessageShouldntBeDelivered()
         {
             var startAt = DateTime.Now;
 
             // wait for retry
             while (!_state.FinishedRetryOnError.GetValueOrDefault(_sampleMessage.StreamGuid))
             {
-                // timeout for test
+                // timeout for test - built in retry logic should try until 1 min
                 if (startAt.AddMinutes(2) < DateTime.Now)
                     throw new TimeoutException();
 
@@ -40,6 +54,7 @@ namespace OrleansSimpleQueueCacheTest
             // wait for message delivering
             await Task.Delay(1000);
 
+            // after the retry is finifhed for the message it shouldn't be marked as delivered
             _deliveredMessages.Should().HaveCount(0);
         }
 
