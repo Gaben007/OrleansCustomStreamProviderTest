@@ -33,7 +33,7 @@ namespace OrleansSimpleQueueCacheTest.QueueAdapter
             _onMessagesDelivered = onMessagesDelivered ?? throw new ArgumentNullException(nameof(onMessagesDelivered));
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _streamQueueMapper = new HashRingBasedStreamQueueMapper(new HashRingStreamQueueMapperOptions() { TotalQueueCount = 1 }, _providerName);
-            _adapterCache = new SimpleQueueAdapterCache(cacheOptions, this._providerName, this._loggerFactory);
+            _adapterCache = new SimpleQueueAdapterCache(cacheOptions, _providerName, _loggerFactory);
         }
 
         public Task<IQueueAdapter> CreateAdapter()

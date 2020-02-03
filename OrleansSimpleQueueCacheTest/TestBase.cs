@@ -31,7 +31,7 @@ namespace OrleansSimpleQueueCacheTest
             string connectionString = configuration.GetConnectionString("Default");
 
             var builder = new SiloHostBuilder()
-                //.UseLocalhostClustering()
+                .UseLocalhostClustering()
                 .ConfigureServices((hostBuilderContext, services) =>
                 {
                     services.AddDbContextPool<TestDbContext>(options =>
@@ -47,19 +47,9 @@ namespace OrleansSimpleQueueCacheTest
                     options.ClusterId = "dev";
                     options.ServiceId = "TEST";
                 })
-                .ConfigureEndpoints(22222, 40000, AddressFamily.InterNetwork, true)
-                .UseAdoNetClustering(options =>
-                {
-                    options.Invariant = "System.Data.SqlClient";
-                    options.ConnectionString = connectionString;
-                })
-                .AddAdoNetGrainStorage("TestDatabaseStorage", options =>
-                {
-                    options.Invariant = "System.Data.SqlClient";
-                    options.ConnectionString = connectionString;
-                    options.UseJsonFormat = true;
-                })
-                .AddMemoryGrainStorage(name: "MemoryStorage")
+                .AddMemoryGrainStorage("MemoryStorage")
+                .AddMemoryGrainStorage("PubSubStore")
+                .AddMemoryGrainStorage("StorageProvider")
                 .AddPersistentStreams("TestStreamProvider", new TestAdapterFactory.FactoryProvider(ProvideMessages, OnMessagesDelivered).Create, streamBuilder =>
                     streamBuilder.Configure<StreamPullingAgentOptions>(ob =>
                         ob.Configure(options => options.GetQueueMsgsTimerPeriod = TimeSpan.FromMilliseconds(100))
