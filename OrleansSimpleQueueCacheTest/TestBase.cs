@@ -27,19 +27,10 @@ namespace OrleansSimpleQueueCacheTest
         [TestInitialize]
         public async Task InitTest()
         {
-            var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-            string connectionString = configuration.GetConnectionString("Default");
-
             var builder = new SiloHostBuilder()
                 .UseLocalhostClustering()
                 .ConfigureServices((hostBuilderContext, services) =>
                 {
-                    services.AddDbContextPool<TestDbContext>(options =>
-                        options.UseSqlServer(connectionString)
-                    )
-                    .AddSingleton<DbMigrator>()
-                    .AddSingleton<ILifecycleParticipant<ISiloLifecycle>>(provider => provider.GetRequiredService<DbMigrator>());
-
                     ConfigureServices(services);
                 })
                 .Configure<ClusterOptions>(options =>
@@ -56,7 +47,6 @@ namespace OrleansSimpleQueueCacheTest
                 ))
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(FailedToHandleMessageTestGrain).Assembly).WithReferences())
                 .ConfigureLogging(logging => logging.AddConsole());
-
 
             _host = builder.Build();
             this.ServiceProvider = _host.Services;
