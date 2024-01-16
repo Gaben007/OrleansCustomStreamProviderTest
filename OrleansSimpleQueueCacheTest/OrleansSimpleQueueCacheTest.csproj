@@ -36,7 +36,7 @@
     <PackageReference Include="Microsoft.Orleans.Reminders.AdoNet" Version="3.1.0" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="3.1.0" />
     <PackageReference Include="FluentAssertions" Version="5.10.2" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
 
   <ItemGroup>
